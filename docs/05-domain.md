@@ -21,12 +21,12 @@ func (r Role) IsValid() bool {
 }
 
 type User struct {
-    ID           int64
-    Email        string
-    PasswordHash string
-    Role         Role
-    CreatedAt    time.Time
-    UpdatedAt    time.Time
+    ID           int64     `db:"id"`
+    Email        string    `db:"email"`
+    PasswordHash string    `db:"password_hash"`
+    Role         Role      `db:"role"`
+    CreatedAt    time.Time `db:"created_at"`
+    UpdatedAt    time.Time `db:"updated_at"`
 }
 
 func (u *User) IsAdmin() bool { return u.Role == RoleAdmin }
@@ -120,9 +120,37 @@ Bu xatolar butun loyihada **sentinel**:
 - service: `errors.Is(err, domain.ErrProductNotFound)`
 - transport: `domain.ErrProductNotFound` → `404`
 
+## `db` tegi domain'da bo'lsa bo'ladimi?
+
+Bo'ladi. Teg — faqat metadata; uni o'qiydigan kod (`pgx`) domain'ga import qilinmaydi, bog'liqlik yo'nalishi buzilmaydi. Domain va jadval **1:1** bo'lsa alohida `productRow` yozish — 15 qator shovqin.
+
+**1-bosqich (tavsiya, o'rganish):** domain'ga `db` teg, row struct yo'q:
+
+```go
+type Product struct {
+    ID        int64         `db:"id"`
+    OwnerID   int64         `db:"owner_id"`
+    Name      string        `db:"name"`
+    Price     float64       `db:"price"`
+    Status    ProductStatus `db:"status"`   // string asosli tip — pgx to'g'ridan-to'g'ri scan qiladi
+    CreatedAt time.Time     `db:"created_at"`
+    UpdatedAt time.Time     `db:"updated_at"`
+}
+```
+
+Repository: `pgx.CollectRows(rows, pgx.RowToStructByName[domain.Product])`.
+
+**2-bosqich — o'sha entity uchun alohida row struct yozing, agar:**
+- domain tipi ≠ DB tipi (value object `Money`, `jsonb` → slice/map, `numeric` → `decimal`)
+- JOIN natijasi (`product + owner_email`)
+- bitta entity ikki jadvalda yoki DB'da yo'q hisoblangan field bor
+- sqlc ishlatilsa (row struct baribir generatsiya bo'ladi, mapping yoziladi — [23-sqlc.md](23-sqlc.md))
+
+`json` teg esa domain'ga **qo'yilmaydi**: API DB'dan tezroq o'zgaradi, `password_hash` chiqib ketish xavfi, hisoblangan field'lar (`short_url`) — bular DTO ishi.
+
 ## Qoidalar
 
-1. **JSON/DB teglari domain'da yo'q.** `json:` — DTO'da, `db:` — repository'dagi private row struct'da.
+1. **`json` teg domain'da yo'q** — API shakli DTO'da. **`db` teg — mumkin** (pastga qarang).
 2. **Vaqtni tashqaridan bering** (`now time.Time`) — testda deterministik.
 3. **Entity o'zini himoya qiladi**: noto'g'ri `Product` yaratib bo'lmasin.
 4. Enum → `type X string` + konstantalar + `IsValid()`.

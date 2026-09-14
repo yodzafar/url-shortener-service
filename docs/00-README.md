@@ -11,7 +11,7 @@ Bu qo'llanmalar **har qanday Go backend servisi** uchun umumiy. Misollar ikkita 
 | 01 | [01-go-project-setup.md](01-go-project-setup.md) | `go mod init` nomlash, kutubxona o'rnatish, `go.mod`/`go.sum`, versiyalar, CLI tool'lar |
 | 02 | [02-folder-structure.md](02-folder-structure.md) | Papka tuzilmasi, fayl nomlash, import qoidalari, qatlamlar |
 | 03 | [03-config.md](03-config.md) | `.env` + struct orqali config |
-| 04 | [04-database.md](04-database.md) | Postgres (pgx) connection pool, migratsiya, tranzaksiya |
+| 04 | [04-database.md](04-database.md) | Postgres (pgx) pool, goose migratsiya, struct scan, tranzaksiya |
 | 05 | [05-domain.md](05-domain.md) | Entity, domain error, biznes qoidalar |
 | 06 | [06-repository.md](06-repository.md) | Repository interface + Postgres implementatsiyasi |
 | 07 | [07-service.md](07-service.md) | Service (use case) qatlami |
@@ -30,6 +30,7 @@ Bu qo'llanmalar **har qanday Go backend servisi** uchun umumiy. Misollar ikkita 
 | 20 | [20-checklist.md](20-checklist.md) | Professional service checklist + o'rganish yo'l xaritasi |
 | 21 | [21-makefile.md](21-makefile.md) | Makefile: sintaksis, o'zgaruvchilar, `.PHONY`, `.env`, `help` target, to'liq namuna |
 | 22 | [22-git-commits.md](22-git-commits.md) | Git commit: Conventional Commits, atomik commit, nimani commit qilmaslik, foydali buyruqlar |
+| 23 | [23-sqlc.md](23-sqlc.md) | sqlc: SQL'dan tip-xavfsiz Go kod generatsiya, sqlc.yaml, narg/embed, repository bilan bog'lash |
 
 ## Asosiy tamoyillar
 

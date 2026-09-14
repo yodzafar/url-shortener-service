@@ -29,6 +29,7 @@ myservice/
 │   │       ├── user_repository.go
 │   │       ├── product_repository.go
 │   │       ├── product_repository_test.go   # integration (testcontainers)
+│   │       ├── mapper.go            # row/sqlc struct ↔ domain (toDomainProduct, toCreateProductParams)
 │   │       └── tx.go
 │   └── transport/
 │       └── http/
@@ -36,7 +37,8 @@ myservice/
 │           ├── server.go            # http.Server sozlamalari
 │           ├── dto/
 │           │   ├── auth_dto.go
-│           │   └── product_dto.go   # request/response + mapper
+│           │   ├── product_dto.go   # request/response struct'lar
+│           │   └── mapper.go        # ToInput / FromProduct
 │           ├── handler/
 │           │   ├── auth_handler.go
 │           │   ├── product_handler.go
@@ -50,13 +52,14 @@ myservice/
 │               └── errors.go        # domain error → HTTP status
 ├── pkg/                             # loyihaga bog'liq BO'LMAGAN kod (boshqa loyihada ham ishlaydi)
 │   ├── logger/
+│   ├── slices/                      # Map[T,R] generic yordamchi
 │   ├── postgres/
 │   ├── validator/
 │   ├── jwt/
 │   └── hash/
-├── migrations/
-│   ├── 000001_create_users.up.sql
-│   └── 000001_create_users.down.sql
+├── migrations/                      # goose: bitta faylda Up/Down
+│   ├── 20260914120000_create_users.sql
+│   └── 20260914120100_create_products.sql
 ├── api/
 │   └── swagger/                     # swag generatsiya qiladi
 ├── docs/                            # qo'llanmalar

@@ -7,7 +7,7 @@
 | `dto.CreateProductRequest` | transport/http/dto | `json`, `validate` | HTTP body shakli |
 | `service.CreateProductInput` | service | yo'q | use case kirishi |
 | `domain.Product` | domain | yo'q | biznes obyekt |
-| `productRow` | repository | `db` | DB qatori |
+| `productRow` (ixtiyoriy) | repository | `db` | DB qatori — faqat domain ≠ jadval bo'lsa; 1:1 bo'lsa `domain.Product`ga `db` teg |
 
 API o'zgarsa DTO o'zgaradi, domain tegilmaydi. DB o'zgarsa `productRow` o'zgaradi.
 
@@ -86,7 +86,10 @@ func FromProducts(ps []domain.Product) []ProductResponse {
 ```
 
 Mapping qoidalari:
-- Oddiy funksiyalar. Reflection kutubxona (`copier`, `mapstructure`) kerak emas — aniq va tez.
+- **Alohida fayl**: `dto/mapper.go` (yoki `product_mapper.go`) — `product_dto.go`da faqat struct'lar va teglar qoladi. Repository tomonida ham xuddi shunday: `postgres/mapper.go` ([06-repository.md](06-repository.md)).
+- Nomlash: `ToInput()` (request → service input), `FromProduct()` (domain → response). `toDto` emas — Go'da `DTO` bosh harf bilan, lekin `From/To` aniqroq.
+- Slice uchun `FromProducts` yozish o'rniga generic `slices.Map(products, FromProduct)` ([06-repository.md](06-repository.md)dagi yordamchi).
+- Oddiy funksiyalar. Reflection kutubxona (`copier`, `mapstructure`) kerak emas — aniq va tez. 30+ entity va bir xil field nomlari bo'lsa `goverter` (compile-time generatsiya) ko'ring.
 - Response'da ichki/maxfiy field (`password_hash`) hech qachon chiqmasin — DTO shu uchun.
 - Ko'p DTO bo'lsa `dto/mapper.go`ga chiqaring.
 

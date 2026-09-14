@@ -63,7 +63,7 @@ ifneq (,$(wildcard .env))      # .env bo'lsa
 endif
 
 migrate-up:
-	migrate -path migrations -database "$(DB_URL)" up   # DB_URL .env'dan keladi
+	goose up          # GOOSE_DRIVER, GOOSE_DBSTRING, GOOSE_MIGRATION_DIR .env'dan keladi
 ```
 
 `.env` sintaksisi Make bilan mos bo'lishi kerak: `KEY=value`, qiymatda bo'sh joy bo'lsa qo'shtirnoq **ishlatmang** (Make qo'shtirnoqni qiymat qismi deb oladi) yoki `$` belgisi bo'lsa `$$` yozing.
@@ -73,7 +73,7 @@ migrate-up:
 ```makefile
 migrate-create:
 	@read -p "Migration name: " name; \
-	migrate create -ext sql -dir migrations -seq $$name
+	goose -dir migrations create $$name sql
 ```
 
 - `\` — qatorni davom ettiradi (bitta shell'da bajarilsin uchun).
@@ -153,7 +153,7 @@ tools: ## CLI vositalarni o'rnatish
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go install github.com/vektra/mockery/v2@latest
-	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	go install github.com/pressly/goose/v3/cmd/goose@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 
@@ -168,7 +168,7 @@ wire: ## Wire codegen
 ```makefile
 .DEFAULT_GOAL := help
 .PHONY: help tools run build clean test test-int coverage lint fmt vet wire swagger mocks generate \
-        migrate-up migrate-down migrate-create migrate-version docker-up docker-down docker-logs check
+        migrate-up migrate-down migrate-status migrate-create docker-up docker-down docker-logs check
 
 # ---------- o'zgaruvchilar ----------
 APP      := api
@@ -192,7 +192,7 @@ tools: ## CLI vositalarni o'rnatish
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go install github.com/vektra/mockery/v2@latest
-	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	go install github.com/pressly/goose/v3/cmd/goose@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 
@@ -242,21 +242,21 @@ mocks: ## Mockery
 
 generate: wire swagger mocks ## Barcha codegen
 
-# ---------- migratsiya ----------
+# ---------- migratsiya (goose; GOOSE_* env .env'dan) ----------
 migrate-up: ## Barcha migratsiyalarni qo'llash
-	migrate -path migrations -database "$(DB_URL)" up
+	goose up
 
 migrate-down: ## Oxirgi migratsiyani qaytarish
-	migrate -path migrations -database "$(DB_URL)" down 1
+	goose down
 
-migrate-version: ## Joriy versiya
-	migrate -path migrations -database "$(DB_URL)" version
+migrate-status: ## Qaysilari qo'llangan
+	goose status
 
 migrate-create: ## Yangi migratsiya: make migrate-create name=add_orders
 ifndef name
 	$(error name is required: make migrate-create name=add_orders)
 endif
-	migrate create -ext sql -dir migrations -seq $(name)
+	goose -dir migrations create $(name) sql
 
 # ---------- docker ----------
 docker-up: ## Postgres + Redis
@@ -291,7 +291,7 @@ make generate       # interfeys/handler/konstruktor o'zgargan bo'lsa
 | `$name` bo'sh | Shell o'zgaruvchisi uchun `$$name` yozing |
 | `.env: No such file` | `include .env` — `ifneq (,$(wildcard .env))` bilan o'rang |
 | `cd` ishlamaydi | Har qator alohida shell. `cd dir && cmd` yoki `\` bilan bitta qatorga |
-| `DB_URL` bo'sh | `include .env` dan keyin `export` yozilmagan |
+| `GOOSE_DBSTRING` bo'sh | `include .env` dan keyin `export` yozilmagan |
 | Qiymatda `$` (parol) buziladi | `.env`da `$$` yozing yoki `.env`ni Make'ga emas, `godotenv`ga qoldiring |
 
 ## Alternativalar

@@ -38,7 +38,7 @@ Har bosqichda kod o'zingiz yoziladi, doc — faqat yo'l ko'rsatadi.
 - [ ] Interfeyslar iste'molchi paketida (`service/ports.go`)
 - [ ] Handler'da biznes mantiq yo'q (if'lar faqat decode/validate)
 - [ ] Repository'da biznes qaror yo'q
-- [ ] Har qatlam o'z struct'i: DTO / Input / Entity / Row
+- [ ] Har qatlam o'z struct'i: DTO / Input / Entity (Row — faqat shakl farqlansa)
 - [ ] Ruxsat (ownership/role) service'da yoki middleware'da, handler'da emas
 - [ ] `context.Context` birinchi argument, saqlanmaydi
 
@@ -77,7 +77,7 @@ Har bosqichda kod o'zingiz yoziladi, doc — faqat yo'l ko'rsatadi.
 | Handler'da SQL | Repository |
 | Global o'zgaruvchi (`var DB *pgxpool.Pool`) | Konstruktor orqali inject |
 | `time.Now()` service ichida | `Clock` interfeys |
-| `json` teg domain'da | DTO'da |
+| `json` teg domain'da | DTO'da (`db` teg domain'da bo'lishi mumkin) |
 | `context.Background()` handler ichida | `r.Context()` |
 | Goroutine'da `r.Context()` ishlatish (request tugagach bekor bo'ladi) | `context.WithoutCancel(r.Context())` yoki yangi context |
 | `defer rows.Close()` unutish | `pgx.CollectRows` ishlating — o'zi yopadi |

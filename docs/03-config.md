@@ -21,6 +21,11 @@ HTTP_WRITE_TIMEOUT=10s
 DB_URL=postgres://postgres:postgres@localhost:5432/myservice?sslmode=disable
 DB_MAX_CONNS=10
 
+# goose CLI uchun (make migrate-*)
+GOOSE_DRIVER=postgres
+GOOSE_DBSTRING=postgres://postgres:postgres@localhost:5432/myservice?sslmode=disable
+GOOSE_MIGRATION_DIR=migrations
+
 REDIS_ADDR=localhost:6379
 
 JWT_SECRET=change-me-min-32-chars-long-secret

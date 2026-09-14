@@ -78,7 +78,8 @@ Semantic Import Versioning: major versiya 2+ bo'lsa import yo'lida ko'rinadi. `g
 go install github.com/google/wire/cmd/wire@latest
 go install github.com/swaggo/swag/cmd/swag@latest
 go install github.com/vektra/mockery/v2@latest
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+go install github.com/pressly/goose/v3/cmd/goose@latest
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/air-verse/air@latest        # hot reload (ixtiyoriy)
@@ -143,7 +144,7 @@ go get github.com/go-chi/chi/v5
 go get github.com/go-chi/cors
 # DB
 go get github.com/jackc/pgx/v5
-go get github.com/golang-migrate/migrate/v4
+go get github.com/pressly/goose/v3
 # config
 go get github.com/caarlos0/env/v11
 go get github.com/joho/godotenv

@@ -47,13 +47,13 @@ mocks:
 generate: wire swagger mocks
 
 migrate-up:
-	migrate -path migrations -database "$(DB_URL)" up
+	goose up
 
 migrate-down:
-	migrate -path migrations -database "$(DB_URL)" down 1
+	goose down
 
 migrate-create:
-	@read -p "name: " name; migrate create -ext sql -dir migrations -seq $$name
+	@read -p "name: " name; goose -dir migrations create $$name sql
 
 docker-up:
 	docker compose up -d

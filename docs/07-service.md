@@ -40,6 +40,57 @@ type Clock interface {
 }
 ```
 
+## Interfeyslarni qayerga yozish — `ports.go` shartmi?
+
+Yo'q. Qoida bitta: **interfeys iste'molchi paketida (`service`) e'lon qilinadi**. Qaysi faylda turishi hajmga bog'liq.
+
+| Variant | Qachon | Tuzilma |
+|---------|--------|---------|
+| Bitta `ports.go` | 3–5 interfeys, 1–2 service (boshlang'ich) | `service/ports.go` |
+| Entity bo'yicha fayl | o'rta loyiha — **tavsiya** | `product_ports.go`, `auth_ports.go`, umumiylar (`Clock`, `TxManager`) `ports.go`da |
+| Service fayli ichida | Go idiomasi, fayl uzun bo'lmasa | `product_service.go` boshida `type ProductRepository interface` |
+
+```
+internal/service/
+├── ports.go               # umumiy: Clock, TxManager
+├── product_service.go
+├── product_ports.go       # ProductRepository, ProductCache
+├── auth_service.go
+├── auth_ports.go          # UserRepository, PasswordHasher, TokenManager, RefreshTokenStore
+├── order_service.go
+└── order_ports.go         # OrderRepository, PaymentGateway, EventPublisher
+```
+
+### Ko'p interfeys — normal. Katta interfeys — muammo
+
+Go'da interfeys qancha kichik bo'lsa shuncha yaxshi (`io.Reader` — 1 metod). Har service **faqat o'ziga kerak** metodlarni e'lon qiladi:
+
+```go
+// Yomon: bitta ulkan interfeys, hamma hammasini "biladi"
+type Repository interface {
+    CreateUser(...); GetUser(...); CreateProduct(...); ListProducts(...); CreateOrder(...) // 30 metod
+}
+
+// Yaxshi: kichik, rol bo'yicha
+type ProductReader interface {
+    GetByID(ctx context.Context, id int64) (*domain.Product, error)
+}
+type ProductWriter interface {
+    Create(ctx context.Context, p *domain.Product) error
+    Update(ctx context.Context, p *domain.Product) error
+}
+type ProductRepository interface { // kerak bo'lsa birlashtirish (embedding)
+    ProductReader
+    ProductWriter
+}
+```
+
+- `OrderService`ga faqat mahsulotni o'qish kerak bo'lsa — `ProductReader` oladi, 30 metodli mock yozmaydi.
+- Bitta `*postgres.ProductRepository` struct hammasini implement qiladi; interfeyslar faqat "kim nimani ko'radi"ni cheklaydi.
+- Wire'da: `wire.Bind(new(service.ProductReader), new(*postgres.ProductRepository))` — bitta struct bir nechta interfeysga bind qilinadi.
+
+10+ entity bo'lsa `service/` paketi 40+ faylga o'sadi — o'shanda feature-based tuzilmaga o'ting ([02-folder-structure.md](02-folder-structure.md) oxiri): `internal/product/ports.go` faqat product interfeyslarini saqlaydi.
+
 ## `internal/service/product_service.go`
 
 ```go

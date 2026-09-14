@@ -1,0 +1,24 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "migrations"                          # goose fayllarini tushunadi (Up qismini o'qiydi)
+    queries: "internal/repository/postgres/queries"
+    gen:
+      go:
+        package: "sqlc"
+        out: "internal/repository/postgres/sqlc"
+        sql_package: "pgx/v5"
+        emit_json_tags: false                     # DB struct'da json teg kerak emas
+        emit_pointers_for_null_types: true        # NULL → *T (pgtype.Text o'rniga)
+        emit_empty_slices: true                   # bo'sh natija → [] (nil emas)
+        emit_methods_with_db_argument: false
+        overrides:
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              type: "time.Time"
+              pointer: true
+          - db_type: "numeric"
+            go_type: "float64" 

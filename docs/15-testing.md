@@ -219,14 +219,14 @@ package postgres_test
 
 import (
     "context"
+    "database/sql"
     "os"
     "testing"
     "time"
 
-    "github.com/golang-migrate/migrate/v4"
-    _ "github.com/golang-migrate/migrate/v4/database/postgres"
-    _ "github.com/golang-migrate/migrate/v4/source/file"
     "github.com/jackc/pgx/v5/pgxpool"
+    "github.com/pressly/goose/v3"
+    _ "github.com/jackc/pgx/v5/stdlib"
     "github.com/testcontainers/testcontainers-go"
     tcpg "github.com/testcontainers/testcontainers-go/modules/postgres"
     "github.com/testcontainers/testcontainers-go/wait"
@@ -248,13 +248,18 @@ func TestMain(m *testing.M) {
     }
     dsn, _ := ctr.ConnectionString(ctx, "sslmode=disable")
 
-    mg, err := migrate.New("file://../../../migrations", dsn)
+    // migratsiya: goose *sql.DB bilan ishlaydi
+    sqlDB, err := sql.Open("pgx", dsn)
     if err != nil {
         panic(err)
     }
-    if err := mg.Up(); err != nil {
+    if err := goose.SetDialect("postgres"); err != nil {
         panic(err)
     }
+    if err := goose.Up(sqlDB, "../../../migrations"); err != nil {
+        panic(err)
+    }
+    sqlDB.Close()
 
     testPool, _ = pgxpool.New(ctx, dsn)
 

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Write(**/*.go)",
+      "Edit(**/*.go)",
+      "Write(go.mod)",
+      "Edit(go.mod)",
+      "Write(go.sum)",
+      "Edit(go.sum)",
+      "Bash(go mod init*)",
+      "Bash(go get*)",
+      "Bash(go install*)",
+      "Bash(wire*)",
+      "Bash(swag init*)",
+      "Bash(mockery*)"
+    ],
+    "allow": [
+      "Write(docs/**)",
+      "Edit(docs/**)",
+      "Bash(go build*)",
+      "Bash(go vet*)",
+      "Bash(go test*)",
+      "Bash(golangci-lint*)"
+    ]
+  }
+}

@@ -17,12 +17,12 @@ func NewPool(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, er
 
 	pcfg.MaxConns = maxConns
 	pcfg.MaxConnLifetime = time.Hour
-	pcfg.MaxConnIdleTime = 30 & time.Minute
+	pcfg.MaxConnIdleTime = 30 * time.Minute
 	pcfg.HealthCheckPeriod = time.Minute
 
 	pool, err := pgxpool.NewWithConfig(ctx, pcfg)
 	if err != nil {
-		return nil, fmt.Errorf("postgres: new pool: %5")
+		return nil, fmt.Errorf("postgres: new pool: %w")
 	}
 
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)

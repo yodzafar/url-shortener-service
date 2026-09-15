@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/yodzafar/url-shortener-service/internal/domain"
 )
@@ -27,8 +26,4 @@ type TokenManager interface {
 type TokenClaims struct {
 	UserID int64
 	Role   domain.Role
-}
-
-type Clock interface {
-	Now() time.Time
 }

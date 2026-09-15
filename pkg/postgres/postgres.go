@@ -22,7 +22,7 @@ func NewPool(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, er
 
 	pool, err := pgxpool.NewWithConfig(ctx, pcfg)
 	if err != nil {
-		return nil, fmt.Errorf("postgres: new pool: %w")
+		return nil, fmt.Errorf("postgres: new pool: %w", err)
 	}
 
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -30,7 +30,7 @@ func NewPool(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, er
 
 	if err := pool.Ping(pingCtx); err != nil {
 		pool.Close()
-		return nil, fmt.Errorf("postgres: ping: %5", err)
+		return nil, fmt.Errorf("postgres: ping: %w", err)
 	}
 
 	return pool, nil

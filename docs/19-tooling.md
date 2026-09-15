@@ -69,7 +69,7 @@ Makefile'da **tab** ishlatiladi (bo'sh joy emas).
 ```yaml
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -84,7 +84,7 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     ports:
       - "6379:6379"
 
@@ -113,7 +113,7 @@ Compose ichida host nomi = service nomi (`postgres`, `redis`), `localhost` emas.
 
 ```dockerfile
 # --- build ---
-FROM golang:1.26-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download            # cache layer: go.mod o'zgarmasa qayta yuklamaydi
@@ -121,7 +121,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app ./cmd/api
 
 # --- run ---
-FROM alpine:3.20
+FROM alpine:3.24
 RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 1000 app
 USER app
 WORKDIR /home/app
@@ -146,7 +146,11 @@ coverage.html
 
 ## `.golangci.yml`
 
+golangci-lint v2 format (`version: "2"` majburiy; v1 dagi `linters-settings`, `issues.exclude-rules`, `gosimple` eskirgan — `golangci-lint migrate` avtomatik o'tkazadi):
+
 ```yaml
+version: "2"
+
 run:
   timeout: 3m
 
@@ -154,9 +158,8 @@ linters:
   enable:
     - errcheck       # e'tiborsiz qoldirilgan error
     - govet
-    - staticcheck
+    - staticcheck    # v2 da gosimple va stylecheck shu ichiga qo'shilgan
     - unused
-    - gosimple
     - ineffassign
     - errorlint      # errors.Is/As o'rniga == ishlatilgan joylar
     - gocritic
@@ -169,16 +172,16 @@ linters:
     - unparam
     - prealloc
 
-linters-settings:
-  revive:
-    rules:
-      - name: exported
-        disabled: true   # har exported narsaga komment talab qilmasin (xohlasangiz yoqing)
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true   # har exported narsaga komment talab qilmasin (xohlasangiz yoqing)
 
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters: [gosec, errcheck]
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gosec, errcheck]
 ```
 
 ```bash
@@ -215,12 +218,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with: { go-version: "1.26" }
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with: { go-version: "1.27" }
       - run: go mod download
       - run: go vet ./...
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v9     # v7+ faqat golangci-lint v2 bilan ishlaydi
+        with: { version: v2.13 }
       - run: go test -race -cover ./...
       - run: go test -race -tags=integration ./...   # Docker ubuntu-latest'da bor
 ```

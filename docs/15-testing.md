@@ -9,17 +9,17 @@
 | **Integration** | repository | real Postgres (testcontainers) | sek | `repository/postgres/*_test.go` |
 | **E2E** (ixtiyoriy) | butun app | real DB + HTTP | sek | `tests/e2e/` |
 
-Kutubxonalar: `github.com/stretchr/testify` (assert/require), `github.com/vektra/mockery/v2` (mock generatsiya), `github.com/testcontainers/testcontainers-go`.
+Kutubxonalar: `github.com/stretchr/testify` (assert/require), `github.com/vektra/mockery/v3` (mock generatsiya), `github.com/testcontainers/testcontainers-go`.
 
 ## Mock generatsiya — mockery
 
 `.mockery.yaml` (loyiha ildizi):
 
 ```yaml
-with-expecter: true
+template: testify                 # v3'da majburiy
 dir: mocks
-outpkg: mocks
-mockname: "{{.InterfaceName}}"
+pkgname: mocks
+structname: "{{.InterfaceName}}"  # default: Mock{{.InterfaceName}}
 filename: "{{.InterfaceName | snakecase}}.go"
 packages:
   github.com/yodzafar/myservice/internal/service:
@@ -35,6 +35,8 @@ packages:
 ```bash
 mockery          # mocks/product_repository.go va h.k. yaratiladi
 ```
+
+> Eslatma: mockery **v3** (2025+) — `with-expecter` olib tashlandi (EXPECT() har doim generatsiya qilinadi), `outpkg` → `pkgname`, `mockname` → `structname`, `template:` majburiy. v2 endi faqat maintenance rejimida.
 
 Alternativa: `go.uber.org/mock` (`mockgen`). Ikkalasi ham yaxshi; mockery `EXPECT()` sintaksisi o'qish uchun qulay.
 
@@ -83,7 +85,7 @@ func TestProductService_Create(t *testing.T) {
             return nil
         })
 
-    p, err := svc.Create(context.Background(), service.CreateProductInput{OwnerID: 1, Name: "Phone", Price: 10})
+    p, err := svc.Create(t.Context(), service.CreateProductInput{OwnerID: 1, Name: "Phone", Price: 10}) // Go 1.24+: t.Context()
 
     require.NoError(t, err)
     require.Equal(t, int64(42), p.ID)
@@ -144,7 +146,7 @@ func TestProductService_Update(t *testing.T) {
             svc, repo := newProductService(t)
             tt.setup(repo)
 
-            p, err := svc.Update(context.Background(), tt.actor, 10, service.UpdateProductInput{Name: &newName})
+            p, err := svc.Update(t.Context(), tt.actor, 10, service.UpdateProductInput{Name: &newName})
 
             if tt.wantErr != nil {
                 require.ErrorIs(t, err, tt.wantErr)
@@ -273,7 +275,7 @@ func TestMain(m *testing.M) {
 // Har test oldidan jadvalni tozalash
 func truncate(t *testing.T) {
     t.Helper()
-    _, err := testPool.Exec(context.Background(), `TRUNCATE products, users RESTART IDENTITY CASCADE`)
+    _, err := testPool.Exec(t.Context(), `TRUNCATE products, users RESTART IDENTITY CASCADE`)
     require.NoError(t, err)
 }
 ```
@@ -285,7 +287,7 @@ func truncate(t *testing.T) {
 
 func TestProductRepository_CreateAndGet(t *testing.T) {
     truncate(t)
-    ctx := context.Background()
+    ctx := t.Context()
     repo := postgres.NewProductRepository(testPool)
     // users FK uchun avval user kerak — helper yozing: createTestUser(t)
 
@@ -319,3 +321,4 @@ go test -race -coverprofile=cover.out ./... && go tool cover -html=cover.out -o 
 6. Vaqt, random — interfeys orqali → deterministik.
 7. Coverage maqsad: service 80%+, handler asosiy yo'llar, repository har metod bitta happy + bitta not-found.
 8. Mock'ni `mocks/` papkasida saqlang, `go generate` yoki `make mocks` bilan yangilang; commit qiling.
+9. Go 1.24+: testda `context.Background()` o'rniga `t.Context()` — test tugaganda avtomatik bekor bo'ladi (`usetesting` linter ham shuni talab qiladi). `TestMain`da (`*testing.M`) `context.Background()` qoladi.

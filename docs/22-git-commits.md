@@ -19,7 +19,7 @@ feat(auth): add refresh token rotation
 fix(product): return 404 instead of 500 when product missing
 refactor(repository): extract productRow mapping to method
 test(service): cover ProductService.Update forbidden case
-chore(deps): bump pgx to v5.7.2
+chore(deps): bump pgx to v5.11.0
 docs(readme): add local setup steps
 ```
 

@@ -3,7 +3,7 @@
 ## 1. Go o'rnatilganini tekshirish
 
 ```bash
-go version          # go1.26.x
+go version          # go1.27.x
 go env GOPATH       # ~/go — go install qilingan binarylar ~/go/bin ga tushadi
 echo $PATH | grep -q "$(go env GOPATH)/bin" || echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.zshrc
 ```
@@ -35,26 +35,26 @@ Natija — `go.mod`:
 ```
 module github.com/yodzafar/myservice
 
-go 1.25.0
+go 1.26.0
 ```
 
-**Nega 1.25, Go 1.26 o'rnatilgan bo'lsa ham?** Go 1.26 dan boshlab `go mod init` ataylab **bitta oldingi** major versiyani yozadi (`1.(N-1).0`) — modul eski toolchain'da ham ishlashi uchun. `go` qatori "minimal talab" degani, "ishlatilayotgan versiya" emas. Eng yangi til imkoniyatlari kerak bo'lsa:
+**Nega 1.26, Go 1.27 o'rnatilgan bo'lsa ham?** Go 1.26 dan boshlab `go mod init` ataylab **bitta oldingi** major versiyani yozadi (`1.(N-1).0`) — modul eski toolchain'da ham ishlashi uchun. `go` qatori "minimal talab" degani, "ishlatilayotgan versiya" emas. Eng yangi til imkoniyatlari kerak bo'lsa:
 
 ```bash
-go mod edit -go=1.26.0
+go mod edit -go=1.27.0
 ```
 
 ## 3. Kutubxona o'rnatish — `go get`
 
 ```bash
 go get github.com/go-chi/chi/v5              # oxirgi versiya
-go get github.com/jackc/pgx/v5@v5.7.2        # aniq versiya
+go get github.com/jackc/pgx/v5@v5.11.0       # aniq versiya
 go get github.com/google/wire@latest         # eng oxirgi
 go get -u ./...                              # hammasini yangilash (ehtiyot bo'ling)
 ```
 
 Nima bo'ladi:
-- `go.mod`ga `require github.com/go-chi/chi/v5 v5.2.1` qo'shiladi
+- `go.mod`ga `require github.com/go-chi/chi/v5 v5.3.2` qo'shiladi (bugungi oxirgi versiya; `go list -m -versions github.com/go-chi/chi/v5` bilan tekshiring)
 - `go.sum`ga checksum yoziladi (ikkalasini ham **commit qiling**)
 - Kod `~/go/pkg/mod/` ga yuklanadi (loyiha ichiga emas)
 
@@ -75,12 +75,12 @@ Semantic Import Versioning: major versiya 2+ bo'lsa import yo'lida ko'rinadi. `g
 `go get` — loyiha bog'liqligi (go.mod'ga yoziladi). `go install` — global binary (`~/go/bin`):
 
 ```bash
-go install github.com/google/wire/cmd/wire@latest
+go install github.com/goforj/wire/cmd/wire@latest     # google/wire arxivlangan (2025-08) — faol fork, API bir xil
 go install github.com/swaggo/swag/cmd/swag@latest
-go install github.com/vektra/mockery/v2@latest
+go install github.com/vektra/mockery/v3@v3.8.0     # v2 eskirgan; mockery @latest'ni tavsiya qilmaydi — tag'ni pin qiling
 go install github.com/pressly/goose/v3/cmd/goose@latest
 go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2   # v2 — import yo'lida /v2 bor
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/air-verse/air@latest        # hot reload (ixtiyoriy)
 ```
@@ -88,7 +88,7 @@ go install github.com/air-verse/air@latest        # hot reload (ixtiyoriy)
 Go 1.24+ da tool'larni `go.mod`da ham qayd qilish mumkin (jamoada bir xil versiya bo'lsin):
 
 ```bash
-go get -tool github.com/google/wire/cmd/wire@latest
+go get -tool github.com/goforj/wire/cmd/wire@latest
 go tool wire ./...      # ishlatish
 ```
 

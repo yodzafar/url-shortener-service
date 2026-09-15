@@ -56,9 +56,11 @@ sql:
             go_type:
               type: "time.Time"
               pointer: true
-          - db_type: "numeric"
+          - db_type: "pg_catalog.numeric"       # NUMERIC(12,2) uchun aynan shu nom (pastga qarang)
             go_type: "float64"                    # o'rganish uchun; prod'da shopspring/decimal
 ```
+
+`db_type` nomi: SQL kalit so'zi bo'lgan tiplarni (`NUMERIC`, `BIGINT`, `VARCHAR`, `TIMESTAMP WITH TIME ZONE`) Postgres parser `pg_catalog.` prefiksi bilan beradi — override faqat shu shaklda mos keladi (`pg_catalog.numeric`, oddiy `numeric` jimgina ishlamaydi). Kalit so'z bo'lmagan tiplar (`timestamptz`, `text`, `uuid`) prefiksiz yoziladi. Manba: sqlc docs, "Overriding types".
 
 ## Query yozish — `queries/products.sql`
 
@@ -216,9 +218,9 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (i
 
 // db.go
 type DBTX interface {
-    Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
-    Query(context.Context, string, ...interface{}) (pgx.Rows, error)
-    QueryRow(context.Context, string, ...interface{}) pgx.Row
+    Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+    Query(context.Context, string, ...any) (pgx.Rows, error)
+    QueryRow(context.Context, string, ...any) pgx.Row
 }
 func New(db DBTX) *Queries
 func (q *Queries) WithTx(tx pgx.Tx) *Queries

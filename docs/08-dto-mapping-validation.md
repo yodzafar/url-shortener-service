@@ -167,8 +167,9 @@ func (vd *Validator) Validate(s any) []FieldError {
     if err == nil {
         return nil
     }
-    var verrs validator.ValidationErrors
-    if !errors.As(err, &verrs) {
+    // Go 1.26+: errors.AsType — errors.As o'rniga tavsiya etiladi (generic, target pointer shart emas)
+    verrs, ok := errors.AsType[validator.ValidationErrors](err)
+    if !ok {
         return []FieldError{{Message: err.Error()}}
     }
     out := make([]FieldError, 0, len(verrs))

@@ -25,7 +25,7 @@ var infraSet = wire.NewSet(
 	provideHasher,
 	validator.New,
 	wire.Bind(new(pgrepo.DB), new(*pgxpool.Pool)),
-	wire.Bind(new(service.UserService), new(*hash.Bcrypt)),
+	wire.Bind(new(service.PasswordHasher), new(*hash.Bcrypt)),
 )
 
 var repositorySet = wire.NewSet(

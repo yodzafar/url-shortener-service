@@ -56,3 +56,5 @@ func Load() (*Config, error) {
 
 	return &cfg, nil
 }
+
+func (c *Config) IsLocal() bool { return c.App.Env == "local" }

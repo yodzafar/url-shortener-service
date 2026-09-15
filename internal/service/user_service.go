@@ -14,7 +14,7 @@ type UserService struct {
 	hasher PasswordHasher
 }
 
-func NewUserRepository(repo UserRepository, hasher PasswordHasher) *UserService {
+func NewUserService(repo UserRepository, hasher PasswordHasher) *UserService {
 	return &UserService{
 		repo:   repo,
 		hasher: hasher,
@@ -26,7 +26,7 @@ type CreateUserInput struct {
 	Password string
 }
 
-func (s *UserService) Register(ctx context.Context, input CreateUserInput) (*domain.User, error) {
+func (s *UserService) Create(ctx context.Context, input CreateUserInput) (*domain.User, error) {
 	hash, err := s.hasher.Hash(input.Password)
 
 	if err != nil {

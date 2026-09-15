@@ -6,10 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/yodzafar/url-shortener-service/internal/app"
 	"github.com/yodzafar/url-shortener-service/internal/config"
-	"github.com/yodzafar/url-shortener-service/pkg/postgres"
 )
 
 func main() {
@@ -24,19 +23,16 @@ func run() error {
 	defer stop()
 
 	cfg, err := config.Load()
-	if err != nil {
-		return err
-	}
-
-	connCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	pool, err := postgres.NewPool(connCtx, cfg.DB.URL, cfg.DB.MaxConns)
 
 	if err != nil {
 		return err
 	}
-	defer pool.Close()
 
-	return nil
+	a, cleanup, err := app.InitApp(ctx, cfg)
+	if err != nil {
+		return err
+	}
+	defer cleanup()
+
+	return a.Run(ctx)
 }

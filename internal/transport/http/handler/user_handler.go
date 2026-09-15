@@ -30,7 +30,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.svc.Register(r.Context(), req.ToInput())
+	u, err := h.svc.Create(r.Context(), req.ToInput())
 
 	if err != nil {
 		response.FromError(w, r, err)

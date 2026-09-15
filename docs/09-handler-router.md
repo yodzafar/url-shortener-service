@@ -187,7 +187,11 @@ func NewRouter(d RouterDeps) http.Handler {
 
     // Global middleware — tartib muhim
     r.Use(chimw.RequestID)
-    r.Use(chimw.RealIP)
+    // Client IP: chimw.RealIP deprecated (IP spoofing, chi v5.3.0+).
+    // Infratuzilmaga qarab BITTASINI tanlang — [11](11-middleware-logging.md) "Client IP" bo'limi:
+    r.Use(chimw.ClientIPFromRemoteAddr) // to'g'ridan-to'g'ri internet (local/dev)
+    // r.Use(chimw.ClientIPFromXFFTrustedProxies(1)) // 1 ta nginx/ALB orqasida
+    // r.Use(chimw.ClientIPFromHeader("CF-Connecting-IP")) // Cloudflare
     r.Use(middleware.Logger(d.Logger))
     r.Use(chimw.Recoverer)
     r.Use(chimw.Timeout(30 * time.Second))

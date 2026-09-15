@@ -20,8 +20,10 @@ authH := handler.NewAuthHandler(authSvc, v)
 
 ```bash
 go get github.com/google/wire
-go install github.com/google/wire/cmd/wire@latest
+go install github.com/goforj/wire/cmd/wire@latest   # CLI — maintained fork (pastdagi eslatma)
 ```
+
+Eslatma: `google/wire` repo'si 2025-08-25 da arxivlangan ("no longer maintained", oxirgi v0.7.0). `github.com/goforj/wire` — API'si bir xil, faol fork (v1.2.0, Go 1.25+, yangi `x/tools`). Kodda `github.com/google/wire` importi o'zgarmaydi — faqat CLI'ni fork'dan o'rnating; xohlasangiz `go mod edit -replace=github.com/google/wire=github.com/goforj/wire@latest`.
 
 ## Provider = konstruktor
 
@@ -169,7 +171,7 @@ Nega `provideXxx`? Wire bir xil tipdan ikkitasini ajrata olmaydi (`string` secre
 ```bash
 cd internal/app && wire        # yoki loyiha ildizidan: wire ./internal/app
 # yoki
-go generate ./...              # wire.go'ga: //go:generate go run github.com/google/wire/cmd/wire
+go generate ./...              # wire.go'ga: //go:generate go run github.com/goforj/wire/cmd/wire@latest
 ```
 
 Natija `wire_gen.go` (commit qilinadi, qo'lda tahrirlanmaydi):
@@ -207,7 +209,7 @@ func InitApp(ctx context.Context, cfg *config.Config) (*App, func(), error) {
 
 | Vosita | Yondashuv | Tavsiya |
 |--------|-----------|---------|
-| **Wire** | compile-time codegen, magic yo'q | ✅ o'rganish va prod uchun |
+| **Wire** | compile-time codegen, magic yo'q | ✅ o'rganish va prod uchun (`google/wire` arxivlangan — CLI'ni `goforj/wire` fork'idan oling) |
 | `uber-go/fx` | runtime, lifecycle hooks, katta loyihalar | Uber-style katta servislar |
 | `uber-go/dig` | runtime reflection | fx'ning asosi |
 | Qo'lda | `main.go`da hammasi | 5–10 bog'liqlikkacha yetarli |

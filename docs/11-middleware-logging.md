@@ -71,7 +71,7 @@ func Logger(log *slog.Logger) func(http.Handler) http.Handler {
                 "bytes", ww.BytesWritten(),
                 "duration_ms", time.Since(start).Milliseconds(),
                 "request_id", chimw.GetReqID(r.Context()),
-                "ip", r.RemoteAddr,
+                "ip", chimw.GetClientIP(r.Context()), // ClientIPFrom* middleware qo'ygan IP
             )
         })
     }
@@ -90,6 +90,41 @@ func ReturnRequestID(next http.Handler) http.Handler {
     })
 }
 ```
+
+## Client IP (chi v5.3.0+)
+
+`chimw.RealIP` **deprecated** — u `r.RemoteAddr`ni `X-Forwarded-For`/`X-Real-IP` header'idan o'zgartirardi, header'ni esa istalgan client yozib yuborishi mumkin (IP spoofing, GHSA-3fxj-6jh8-hvhx). Yangi middleware'lar `RemoteAddr`ga tegmaydi, IP'ni context'ga qo'yadi, siz `GetClientIP` bilan o'qiysiz.
+
+Infratuzilmaga qarab **bittasini** tanlang:
+
+```go
+chimw "github.com/go-chi/chi/v5/middleware"
+
+// 1) Server to'g'ridan-to'g'ri internetda (local/dev, proxy yo'q)
+r.Use(chimw.ClientIPFromRemoteAddr)
+
+// 2) Ma'lum sondagi ishonchli proxy orqasida (masalan 1 ta nginx yoki AWS ALB)
+r.Use(chimw.ClientIPFromXFFTrustedProxies(1))
+
+// 3) Proxy'lar IP diapazoni ma'lum (X-Forwarded-For o'ngdan chapga yuriladi, shu CIDR'lar tashlab ketiladi)
+r.Use(chimw.ClientIPFromXFF("10.0.0.0/8", "172.16.0.0/12"))
+
+// 4) Proxy bitta IP'li maxsus header qo'yadi (Cloudflare, o'z nginx'ingiz)
+r.Use(chimw.ClientIPFromHeader("CF-Connecting-IP"))
+```
+
+O'qish — handler, logger, rate limiter'da:
+
+```go
+ip := chimw.GetClientIP(r.Context())      // string, o'rnatilmagan bo'lsa ""
+addr := chimw.GetClientIPAddr(r.Context()) // netip.Addr
+```
+
+Qoidalar:
+- `ClientIPFrom*` middleware **global** va **Logger'dan oldin** turadi, aks holda log'da IP bo'sh chiqadi.
+- `r.RemoteAddr` endi har doim TCP peer (proxy bo'lsa proxy IP'si). To'g'ridan-to'g'ri ishlatmang.
+- `X-Forwarded-For`ni o'zingiz parse qilmang — chapdagi qiymatni client yozadi.
+- Proxy'lar soni/diapazonini `.env`dan oling (`TRUSTED_PROXIES`), kodga qotirmang.
 
 ## Recover (panic → 500)
 
@@ -116,11 +151,36 @@ To'liq kod `middleware/auth.go`da — [12-auth-jwt-roles.md](12-auth-jwt-roles.m
 
 ## Rate limiting
 
-```go
-import "github.com/go-chi/httprate"
+`httprate.LimitByIP` va `KeyByRealIP` **deprecated** (v0.16+): birinchisi proxy orqasida hamma client'ni bitta bucket'ga soladi, ikkinchisi header'ga ishonadi (spoofing). Endi kalit **majburiy** argument — `LimitBy` + yuqoridagi `ClientIPFrom*` middleware:
 
-r.Use(httprate.LimitByIP(100, time.Minute)) // 100 req/min per IP
+```go
+import (
+    chimw "github.com/go-chi/chi/v5/middleware"
+    "github.com/go-chi/httprate"
+)
+
+// ClientIPFrom* middleware'dan KEYIN
+r.Use(httprate.LimitBy(100, time.Minute, clientIPKey)) // 100 req/min per IP
+
+func clientIPKey(r *http.Request) (string, error) {
+    // CanonicalizeIP: IPv6'ni /64 prefix'ga qisqartiradi — bo'lmasa client har so'rovda
+    // o'z /64 ichida IP almashtirib limitni aylanib o'tadi
+    return httprate.CanonicalizeIP(chimw.GetClientIP(r.Context())), nil
+}
 ```
+
+Login endpoint'ga qattiqroq limit — group ichida:
+
+```go
+r.Group(func(r chi.Router) {
+    r.Use(httprate.LimitBy(5, time.Minute, clientIPKey))
+    r.Post("/auth/login", d.Auth.Login)
+})
+```
+
+Bir nechta o'lchov (IP + endpoint): `httprate.JoinKeys(clientIPKey, httprate.KeyByEndpoint)`.
+
+Ogohlantirish: yuqorida `ClientIPFrom*` bo'lmasa `GetClientIP` `""` qaytaradi va **barcha** so'rovlar bitta bucket'ga tushadi.
 
 ## Graceful shutdown — `internal/app/app.go`
 
@@ -166,7 +226,7 @@ func (a *App) Run() error {
     case err := <-errCh:
         return err
     case <-ctx.Done():
-        a.log.Info("shutdown signal received")
+        a.log.Info("shutdown signal received", "cause", context.Cause(ctx)) // Go 1.26+: NotifyContext qaysi signal kelganini cause'ga yozadi
     }
 
     shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -205,8 +265,9 @@ Docker/Kubernetes `SIGTERM` yuboradi → server 10 soniya ichida joriy request'l
 ## Middleware tartibi (chi)
 
 ```
-RequestID → RealIP → Logger → Recoverer → Timeout → CORS → [Auth] → [RequireRole] → handler
+RequestID → ClientIPFrom* → Logger → Recoverer → Timeout → CORS → [RateLimit] → [Auth] → [RequireRole] → handler
 ```
 
+- `ClientIPFrom*` Logger'dan oldin — log'da haqiqiy IP chiqsin (`RealIP` deprecated, yuqoridagi bo'lim).
 - `Recoverer` Logger'dan keyin — panic ham log'ga tushsin.
 - `Auth` faqat kerakli group'da, global emas.

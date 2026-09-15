@@ -5,12 +5,12 @@
 | | `net/http` (std) | `chi` | `gin` | `echo` | `fiber` |
 |---|---|---|---|---|---|
 | Asos | std | std `http.Handler` | o'z `gin.Context` | o'z `echo.Context` | `fasthttp` (std emas) |
-| Handler imzosi | `(w, r)` | `(w, r)` | `(c *gin.Context)` | `(c echo.Context) error` | `(c *fiber.Ctx) error` |
+| Handler imzosi | `(w, r)` | `(w, r)` | `(c *gin.Context)` | `(c *echo.Context) error` | `(c fiber.Ctx) error` |
 | Std middleware mos | ✅ | ✅ | adapter kerak | adapter kerak | ❌ (fasthttp) |
 | Tezlik | yaxshi | yaxshi | yaxshi | yaxshi | eng tez (lekin farq real loyihada sezilmaydi) |
 | Mashhurlik | — | yuqori | eng yuqori | yuqori | o'sib bormoqda |
 | Path param | `r.PathValue("id")` (1.22+) | `chi.URLParam(r,"id")` | `c.Param("id")` | `c.Param("id")` | `c.Params("id")` |
-| Bind+validate | qo'lda | qo'lda | `c.ShouldBindJSON` (validator ichida) | `c.Bind` + `c.Validate` | `c.BodyParser` |
+| Bind+validate | qo'lda | qo'lda | `c.ShouldBindJSON` (validator ichida) | `c.Bind` + `c.Validate` | `c.Bind().Body` |
 
 ## Tavsiya
 
@@ -106,12 +106,12 @@ func (a *Auth) Authenticate() gin.HandlerFunc {
 
 gin'da o'z validatorni ulash: `binding.Validator = &customValidator{}` yoki `c.ShouldBindJSON` o'rniga `json.Decode` + o'z `validator.Validate` (Clean Arch uchun tavsiya — bitta validator hamma joyda).
 
-### echo
+### echo (v5)
 
 ```go
-import "github.com/labstack/echo/v4"
+import "github.com/labstack/echo/v5"
 
-func (h *ProductHandler) Get(c echo.Context) error {
+func (h *ProductHandler) Get(c *echo.Context) error { // v5: Context — struct, pointer bilan
     id, err := strconv.ParseInt(c.Param("id"), 10, 64)
     if err != nil {
         return echo.NewHTTPError(http.StatusBadRequest, "invalid id")
@@ -124,7 +124,7 @@ func (h *ProductHandler) Get(c echo.Context) error {
 }
 
 e := echo.New()
-e.HTTPErrorHandler = response.EchoErrorHandler // errMap bilan
+e.HTTPErrorHandler = response.EchoErrorHandler // errMap bilan; v5 imzosi: func(c *echo.Context, err error)
 e.Use(echomw.Recover(), echomw.RequestID())
 v1 := e.Group("/api/v1")
 v1.GET("/products/:id", product.Get)
@@ -134,17 +134,19 @@ protected.POST("/products", product.Create)
 
 Echo'ning "handler `error` qaytaradi" modeli — har handler'da `response.FromError` chaqirmaysiz.
 
-### fiber (v2)
+> Eslatma: echo **v5** (2026) — `echo.Context` interfeys emas, struct: handler `c *echo.Context` oladi; `HTTPErrorHandler` imzosi `func(c *echo.Context, err error)`. v4 2026-12-31 gacha faqat xavfsizlik tuzatishlarini oladi.
+
+### fiber (v3)
 
 ```go
-import "github.com/gofiber/fiber/v2"
+import "github.com/gofiber/fiber/v3"
 
-func (h *ProductHandler) Get(c *fiber.Ctx) error {
-    id, err := c.ParamsInt("id")
-    if err != nil {
+func (h *ProductHandler) Get(c fiber.Ctx) error { // v3: fiber.Ctx — interfeys, pointer emas
+    id := fiber.Params[int64](c, "id") // v3: generic; xato bo'lsa default (0)
+    if id == 0 {
         return fiber.NewError(fiber.StatusBadRequest, "invalid id")
     }
-    p, err := h.svc.Get(c.UserContext(), int64(id)) // c.Context() — fasthttp ctx, UserContext() — std
+    p, err := h.svc.Get(c.Context(), id) // v3: c.Context() — std context.Context; fasthttp ctx — c.RequestCtx()
     if err != nil {
         return err
     }
@@ -157,7 +159,9 @@ v1 := app.Group("/api/v1")
 v1.Get("/products/:id", product.Get)
 ```
 
-Fiber'da `context.Context` — `c.UserContext()`. `httptest` ishlamaydi — `app.Test(req)` ishlatiladi.
+Fiber'da `context.Context` — `c.Context()` (v3; v2'dagi `c.UserContext()` olib tashlangan). `httptest` ishlamaydi — `app.Test(req)` ishlatiladi.
+
+> Eslatma: fiber **v3** (GA) — `*fiber.Ctx` → `fiber.Ctx`, `c.ParamsInt` → `fiber.Params[T]`, `c.BodyParser` → `c.Bind().Body`, `c.UserContext()` → `c.Context()`.
 
 ## Framework almashtirganda nima o'zgaradi
 

@@ -149,8 +149,8 @@ func (e *NotFoundError) Is(target error) bool { return target == ErrNotFound } /
 return nil, &domain.NotFoundError{Entity: "product", ID: id}
 
 // transport
-var nf *domain.NotFoundError
-if errors.As(err, &nf) {
+// Go 1.26+: errors.AsType — errors.As o'rniga tavsiya etiladi (generic, target pointer shart emas)
+if nf, ok := errors.AsType[*domain.NotFoundError](err); ok {
     JSON(w, 404, ErrorResponse{Error: ErrorBody{Code: "NOT_FOUND", Message: nf.Error()}})
 }
 ```

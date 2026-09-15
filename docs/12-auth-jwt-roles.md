@@ -90,7 +90,8 @@ func (m *Manager) ParseAccess(tokenStr string) (*service.TokenClaims, error) {
             return nil, errors.New("unexpected signing method")
         }
         return m.secret, nil
-    }, jwt.WithIssuer(m.issuer), jwt.WithExpirationRequired())
+    }, jwt.WithValidMethods([]string{"HS256"}), // jwt v5: kutubxona "strongly encouraged" deydi — alg'ni parser tekshiradi
+        jwt.WithIssuer(m.issuer), jwt.WithExpirationRequired())
     if err != nil || !tok.Valid {
         return nil, domain.ErrInvalidToken
     }
@@ -380,7 +381,7 @@ Boshlang'ich: RBAC (middleware) + ownership (service). Ko'p rol/permission bo'ls
 ## Xavfsizlik checklist
 
 - Secret ≥ 32 belgi, env'dan. Kodga yozmang.
-- `alg` tekshiruvi (`SigningMethodHMAC`) — `none`/`RS256` almashtirish hujumi.
+- `alg` tekshiruvi (`jwt.WithValidMethods` + `SigningMethodHMAC`) — `none`/`RS256` almashtirish hujumi.
 - Access TTL qisqa (5–15m). Refresh rotation (eski token bir marta).
 - Parol: bcrypt/argon2, hech qachon SHA256. `password_hash` DTO'da chiqmasin.
 - Login xatosi bir xil: "invalid email or password" (email bormi bilib bo'lmasin).

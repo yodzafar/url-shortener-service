@@ -1,0 +1,99 @@
+basePath: /api/v1
+definitions:
+  github_com_yodzafar_url-shortener-service_internal_transport_http_dto.CreateUserDto:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_yodzafar_url-shortener-service_internal_transport_http_dto.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorBody:
+    properties:
+      code:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/github_com_yodzafar_url-shortener-service_pkg_validator.FieldError'
+        type: array
+      message:
+        type: string
+    type: object
+  github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorBody'
+    type: object
+  github_com_yodzafar_url-shortener-service_pkg_validator.FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: URL Shortener management service.
+  title: URL Shortener API
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_dto.CreateUserDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create User
+      tags:
+      - products
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: '"Bearer <access_token>" format'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

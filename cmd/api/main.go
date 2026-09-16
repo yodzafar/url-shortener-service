@@ -11,6 +11,17 @@ import (
 	"github.com/yodzafar/url-shortener-service/internal/config"
 )
 
+// @title           URL Shortener API
+// @version         1.0
+// @description     URL Shortener management service.
+// @host            localhost:8080
+// @BasePath        /api/v1
+// @schemes         http https
+
+// @securityDefinitions.apikey BearerAuth
+// @in                         header
+// @name                       Authorization
+// @description                "Bearer <access_token>" format
 func main() {
 	if err := run(); err != nil {
 		slog.Error("fatal", "err", err)

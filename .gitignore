@@ -3,3 +3,5 @@ bin/
 *.out
 coverage.html
 tmp/
+
+.idea

@@ -7,13 +7,13 @@ import (
 	"github.com/yodzafar/url-shortener-service/internal/service"
 )
 
-// ---------- Request ----------
-type CreateUserRequest struct {
+// CreateUserDto ---------- Request ----------
+type CreateUserDto struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
 }
 
-// ---------- Response ----------
+// UserResponse ---------- Response ----------
 type UserResponse struct {
 	ID        int64     `json:"id"`
 	Email     string    `json:"email"`
@@ -21,8 +21,8 @@ type UserResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// ---------- Mapping ----------
-func (r CreateUserRequest) ToInput() service.CreateUserInput {
+// ToInput ---------- Mapping ----------
+func (r CreateUserDto) ToInput() service.CreateUserInput {
 	return service.CreateUserInput{Email: r.Email, Password: r.Email}
 }
 

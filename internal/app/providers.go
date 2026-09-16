@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yodzafar/url-shortener-service/internal/config"
 	pgrepo "github.com/yodzafar/url-shortener-service/internal/repository/postgres"
+	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/repo"
 	"github.com/yodzafar/url-shortener-service/internal/service"
 	httptransport "github.com/yodzafar/url-shortener-service/internal/transport/http"
 	"github.com/yodzafar/url-shortener-service/internal/transport/http/handler"
@@ -29,8 +30,8 @@ var infraSet = wire.NewSet(
 )
 
 var repositorySet = wire.NewSet(
-	pgrepo.NewUserRepository,
-	wire.Bind(new(service.UserRepository), new(*pgrepo.UserRepository)),
+	repo.NewUserRepository,
+	wire.Bind(new(service.UserRepository), new(*repo.UserRepository)),
 )
 
 var serviceSet = wire.NewSet(

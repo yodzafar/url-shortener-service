@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yodzafar/url-shortener-service/internal/adapter/token"
 	"github.com/yodzafar/url-shortener-service/internal/config"
 	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/repo"
 	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/sqlc"
@@ -21,13 +22,15 @@ import (
 )
 
 var infraSet = wire.NewSet(
-	providerLogger,
+	validator.New,
+	sqlc.New,
 	providePool,
 	provideHasher,
-	validator.New,
+	providerLogger,
+	provideTokenManager,
 	wire.Bind(new(sqlc.DBTX), new(*pgxpool.Pool)),
-	sqlc.New,
 	wire.Bind(new(service.PasswordHasher), new(*hash.Bcrypt)),
+	wire.Bind(new(service.TokenManager), new(*token.JWTManager)),
 )
 
 var repositorySet = wire.NewSet(
@@ -37,6 +40,7 @@ var repositorySet = wire.NewSet(
 
 var serviceSet = wire.NewSet(
 	service.NewUserService,
+	service.NewAuthService,
 )
 
 var transportSet = wire.NewSet(
@@ -65,4 +69,8 @@ func provideHasher() *hash.Bcrypt {
 
 func provideServer(cfg *config.Config, h http.Handler) *http.Server {
 	return httptransport.NewServer(cfg.HTTP.Port, h, cfg.HTTP.ReadTimeout, cfg.HTTP.WriteTimeout)
+}
+
+func provideTokenManager(cfg *config.Config) *token.JWTManager {
+	return token.NewManager([]byte(cfg.JWT.Secret), cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, cfg.JWT.Issuer)
 }

@@ -38,8 +38,9 @@ type Redis struct {
 
 type JWT struct {
 	Secret     string        `env:"JWT_SECRET,required"`
-	AccessTTL  time.Duration `env:"JWT_SECRET_TTL" envDefault:"15m"`
+	AccessTTL  time.Duration `env:"JWT_ACCESS_TTL" envDefault:"15m"`
 	RefreshTTL time.Duration `env:"JWT_REFRESH_TTL" envDefault:"720h"`
+	Issuer     string        `env:"JWT_ISSUER" envDefault:"url-shortener"`
 }
 
 func Load() (*Config, error) {

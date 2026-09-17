@@ -9,7 +9,7 @@ pool := postgres.NewPool(...)
 userRepo := pgrepo.NewUserRepository(pool)
 productRepo := pgrepo.NewProductRepository(pool)
 hasher := hash.NewBcrypt()
-tokens := jwt.NewManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, "myservice")
+tokens := token.NewJWTManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, cfg.JWT.Issuer)
 authSvc := service.NewAuthService(userRepo, hasher, tokens, refreshStore, cfg.JWT.RefreshTTL, clock.Real{})
 productSvc := service.NewProductService(productRepo, clock.Real{}, log)
 authH := handler.NewAuthHandler(authSvc, v)
@@ -47,6 +47,7 @@ import (
 
     "github.com/google/wire"
 
+    "github.com/yodzafar/myservice/internal/adapter/token"
     "github.com/yodzafar/myservice/internal/config"
     "github.com/yodzafar/myservice/internal/repository/postgres"
     "github.com/yodzafar/myservice/internal/service"
@@ -76,6 +77,7 @@ package app
 import (
     "github.com/google/wire"
 
+    "github.com/yodzafar/myservice/internal/adapter/token"
     "github.com/yodzafar/myservice/internal/config"
     "github.com/yodzafar/myservice/internal/repository/postgres"
     "github.com/yodzafar/myservice/internal/repository/redis"
@@ -85,13 +87,12 @@ import (
     "github.com/yodzafar/myservice/internal/transport/http/middleware"
     "github.com/yodzafar/myservice/pkg/clock"
     "github.com/yodzafar/myservice/pkg/hash"
-    "github.com/yodzafar/myservice/pkg/jwt"
     "github.com/yodzafar/myservice/pkg/logger"
     pgpool "github.com/yodzafar/myservice/pkg/postgres"
     "github.com/yodzafar/myservice/pkg/validator"
 )
 
-// --- infra: logger, db, validator, hasher, jwt ---
+// --- infra: logger, db, validator, hasher, token ---
 var infraSet = wire.NewSet(
     provideLogger,
     providePool,
@@ -102,7 +103,7 @@ var infraSet = wire.NewSet(
     wire.Struct(new(clock.Real)),
     // interfeys ↔ implementatsiya bog'lash
     wire.Bind(new(service.PasswordHasher), new(*hash.Bcrypt)),
-    wire.Bind(new(service.TokenManager), new(*jwt.Manager)),
+    wire.Bind(new(service.TokenManager), new(*token.JWTManager)),
     wire.Bind(new(service.Clock), new(clock.Real)),
 )
 
@@ -148,8 +149,8 @@ func provideRedis(cfg *config.Config) *goredis.Client {
     return goredis.NewClient(&goredis.Options{Addr: cfg.Redis.Addr})
 }
 
-func provideTokenManager(cfg *config.Config) *jwt.Manager {
-    return jwt.NewManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, "myservice")
+func provideTokenManager(cfg *config.Config) *token.JWTManager {
+    return token.NewJWTManager(cfg.JWT.Secret, cfg.JWT.AccessTTL, cfg.JWT.Issuer)
 }
 
 func provideAuthService(users service.UserRepository, h service.PasswordHasher, t service.TokenManager,

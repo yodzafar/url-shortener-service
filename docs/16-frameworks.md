@@ -167,7 +167,7 @@ Fiber'da `context.Context` — `c.Context()` (v3; v2'dagi `c.UserContext()` olib
 
 ```
 o'zgaradi:   transport/http/handler/*, router.go, middleware/*, response/* (framework-specific qismi)
-o'zgarmaydi: domain, service, repository, dto (struct'lar), pkg/validator, pkg/jwt, testlar (service)
+o'zgarmaydi: domain, service, repository, dto (struct'lar), pkg/validator, adapter/token, testlar (service)
 ```
 
 Shu sababli handler paketi service'ni **interfeys** orqali olsa — handler testi ham framework'dan mustaqil bo'ladi.

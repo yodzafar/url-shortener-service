@@ -14,6 +14,9 @@ myservice/
 │   │   └── wire_gen.go              # wire generatsiya qiladi (qo'lda yozilmaydi)
 │   ├── config/
 │   │   └── config.go
+│   ├── adapter/                     # tashqi kutubxona ↔ service interfeysi (domain'ni biladi)
+│   │   └── token/
+│   │       └── jwt.go               # service.TokenManager (golang-jwt)
 │   ├── domain/                      # ENG ICHKI qatlam: entity + domain error + qoidalar
 │   │   ├── user.go
 │   │   ├── product.go
@@ -55,7 +58,6 @@ myservice/
 │   ├── slices/                      # Map[T,R] generic yordamchi
 │   ├── postgres/
 │   ├── validator/
-│   ├── jwt/
 │   └── hash/
 ├── migrations/                      # goose: bitta faylda Up/Down
 │   ├── 20260914120000_create_users.sql
@@ -86,6 +88,7 @@ myservice/
 | `service` | domain + o'zi e'lon qilgan interfeyslar | pgx, chi, http |
 | `repository` | domain + pgx | service, http |
 | `transport/http` | service + dto + domain error | pgx, SQL |
+| `adapter` | domain + service interfeysi + tashqi kutubxona | http, repository |
 | `app` | hammasini (faqat yig'ish uchun) | — |
 
 **Qoida:** ichki qatlam tashqi qatlamni import qilmaydi. `domain` paketida `import "net/http"` ko'rsangiz — xato.
@@ -93,7 +96,10 @@ myservice/
 ## `internal/` vs `pkg/`
 
 - `internal/` — faqat shu moduldan import qilinadi (kompilyator tekshiradi). Biznes kod hammasi shu yerda.
-- `pkg/` — boshqa loyihaga ko'chirsangiz ham ishlaydigan kod (`logger`, `postgres` pool, `validator`, `jwt`). Agar ichida `domain` import qilinsa — u `pkg` emas, `internal`ga o'tkazing.
+- `pkg/` — boshqa loyihaga ko'chirsangiz ham ishlaydigan kod (`logger`, `postgres` pool, `validator`, `hash`). Agar ichida `domain` yoki `service` import qilinsa — u `pkg` emas, `internal/adapter/`ga o'tkazing.
+- `internal/adapter/` — tashqi kutubxonani `service` interfeysiga moslashtiradigan kod (`token/jwt.go`, keyinroq `mail/smtp.go`, `storage/s3.go`). `domain`ni biladi, shuning uchun `pkg`da turolmaydi.
+
+Tekshirish: `grep -rn "internal/" pkg/` hech narsa qaytarmasligi kerak.
 
 ## Nomlash qoidalari
 

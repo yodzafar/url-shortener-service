@@ -36,10 +36,12 @@ func (b *Bcrypt) Compare(hash, password string) error {
 }
 ```
 
-## `pkg/jwt/jwt.go` — TokenManager
+## `internal/adapter/token/jwt.go` — TokenManager
+
+Nega `pkg/jwt` emas: bu kod `domain.Role`, `domain.ErrInvalidToken` va `service.TokenClaims`ni biladi, demak boshqa loyihaga ko'chirib bo'lmaydi. `pkg/` faqat loyihaga bog'liq bo'lmagan kod uchun ([02-folder-structure.md](02-folder-structure.md)). Shuning uchun u `internal/adapter/` ostida turadi: tashqi kutubxona (`golang-jwt`) bilan `service` interfeysi orasidagi moslashtiruvchi.
 
 ```go
-package jwt
+package token
 
 import (
     "crypto/rand"
@@ -54,24 +56,27 @@ import (
     "github.com/yodzafar/myservice/internal/service"
 )
 
-type Manager struct {
+// Kompilyatsiya vaqtida interfeysga mosligini tekshiradi — wire'gacha xato chiqadi
+var _ service.TokenManager = (*JWTManager)(nil)
+
+type JWTManager struct {
     secret    []byte
     accessTTL time.Duration
     issuer    string
 }
 
-func NewManager(secret string, accessTTL time.Duration, issuer string) *Manager {
-    return &Manager{secret: []byte(secret), accessTTL: accessTTL, issuer: issuer}
+func NewJWTManager(secret string, accessTTL time.Duration, issuer string) *JWTManager {
+    return &JWTManager{secret: []byte(secret), accessTTL: accessTTL, issuer: issuer}
 }
 
-type claims struct {
+type jwtClaims struct { // token ichidagi JSON — faqat shu paket ko'radi
     Role string `json:"role"`
     jwt.RegisteredClaims
 }
 
-func (m *Manager) GenerateAccess(userID int64, role domain.Role) (string, error) {
+func (m *JWTManager) GenerateAccess(userID int64, role domain.Role) (string, error) {
     now := time.Now()
-    c := claims{
+    c := jwtClaims{
         Role: string(role),
         RegisteredClaims: jwt.RegisteredClaims{
             Subject:   fmt.Sprint(userID),
@@ -83,8 +88,8 @@ func (m *Manager) GenerateAccess(userID int64, role domain.Role) (string, error)
     return jwt.NewWithClaims(jwt.SigningMethodHS256, c).SignedString(m.secret)
 }
 
-func (m *Manager) ParseAccess(tokenStr string) (*service.TokenClaims, error) {
-    var c claims
+func (m *JWTManager) ParseAccess(tokenStr string) (*service.TokenClaims, error) {
+    var c jwtClaims
     tok, err := jwt.ParseWithClaims(tokenStr, &c, func(t *jwt.Token) (any, error) {
         if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok { // alg confusion hujumidan himoya
             return nil, errors.New("unexpected signing method")
@@ -103,7 +108,7 @@ func (m *Manager) ParseAccess(tokenStr string) (*service.TokenClaims, error) {
 }
 
 // Refresh — tasodifiy 32 bayt, JWT emas
-func (m *Manager) GenerateRefresh() (string, error) {
+func (m *JWTManager) GenerateRefresh() (string, error) {
     b := make([]byte, 32)
     if _, err := rand.Read(b); err != nil {
         return "", err
@@ -112,7 +117,9 @@ func (m *Manager) GenerateRefresh() (string, error) {
 }
 ```
 
-`pkg/jwt` `internal/domain`ni import qilyapti — demak aslida `internal/auth`ga tegishli. O'rganish uchun ok; toza qilmoqchi bo'lsangiz `Role`ni `string` sifatida uzating.
+Ikki tip bor va bu to'g'ri: `jwtClaims` — kutubxona uchun JSON tuzilma (`RegisteredClaims` embed), `service.TokenClaims` — biznes qatlam ko'radigan toza natija. `RegisteredClaims` tashqariga chiqmaydi, kutubxonani almashtirsangiz faqat shu fayl o'zgaradi.
+
+Muqobil: JWT'ni haqiqatan `pkg/jwt`da umumiy qoldirmoqchi bo'lsangiz, u `string` role va o'z `Claims` tipini qaytaradi, `domain`ga o'girishni `internal/adapter/token` ichidagi yupqa wrapper qiladi. Ikkala yo'l ham to'g'ri, muhimi `pkg/` ichida `internal/` importi bo'lmasligi.
 
 ## Refresh token saqlash — `service/ports.go`
 

@@ -34,9 +34,13 @@ func InitApp(ctx context.Context, cfg *config.Config) (*App, func(), error) {
 		return nil, nil, err
 	}
 	userHandler := handler.NewUserHandler(userService, validatorValidator)
+	jwtManager := provideTokenManager(cfg)
+	authService := service.NewAuthService(userRepository, bcrypt, jwtManager)
+	authHandler := handler.NewAuthHandler(authService)
 	logger := providerLogger(cfg)
 	routerDeps := http.RouterDeps{
 		User:   userHandler,
+		Auth:   authHandler,
 		Logger: logger,
 	}
 	httpHandler := http.NewRouter(routerDeps)

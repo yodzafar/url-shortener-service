@@ -45,6 +45,7 @@ var serviceSet = wire.NewSet(
 
 var transportSet = wire.NewSet(
 	handler.NewUserHandler,
+	handler.NewAuthHandler,
 	wire.Struct(new(httptransport.RouterDeps), "*"),
 	httptransport.NewRouter,
 	provideServer,

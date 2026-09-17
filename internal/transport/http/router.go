@@ -16,6 +16,7 @@ import (
 
 type RouterDeps struct {
 	User   *handler.UserHandler
+	Auth   *handler.AuthHandler
 	Logger *slog.Logger
 }
 
@@ -30,7 +31,7 @@ func NewRouter(d RouterDeps) http.Handler {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorazation", "Content-type", "Accept-Language"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-type", "Accept-Language"},
 		AllowCredentials: true,
 	}))
 
@@ -49,6 +50,10 @@ func NewRouter(d RouterDeps) http.Handler {
 		r.Route("/users", func(ur chi.Router) {
 			ur.Post("/", d.User.Create)
 			ur.Get("/{id}", d.User.GetById)
+		})
+
+		r.Route("/auth", func(ar chi.Router) {
+			ar.Post("/login", d.Auth.Login)
 		})
 	})
 

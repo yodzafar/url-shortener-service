@@ -29,6 +29,23 @@ definitions:
       message:
         type: string
     type: object
+  LoginDTO:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  LoginResponse:
+    properties:
+      access:
+        type: string
+      refresh:
+        type: string
+    type: object
   UserResponse:
     properties:
       createdAt:
@@ -50,6 +67,31 @@ info:
   title: URL Shortener API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: user credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/LoginDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      summary: Login
+      tags:
+      - auth
   /users:
     post:
       consumes:

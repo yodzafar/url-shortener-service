@@ -19,13 +19,13 @@ type Validator struct {
 type FieldError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
-}
+} //@name FieldError
 
 func New() (*Validator, error) {
 	v := validator.New(validator.WithRequiredStructEnabled())
 
 	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		name, _, _ := strings.Cut(fld.Tag.Get("json"), ",")
 
 		if name == "-" || name == "" {
 			return fld.Name

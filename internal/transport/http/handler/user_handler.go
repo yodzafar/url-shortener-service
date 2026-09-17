@@ -2,7 +2,9 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/yodzafar/url-shortener-service/internal/service"
 	"github.com/yodzafar/url-shortener-service/internal/transport/http/dto"
 	"github.com/yodzafar/url-shortener-service/internal/transport/http/response"
@@ -20,14 +22,12 @@ func NewUserHandler(svc *service.UserService, v *validator.Validator) *UserHandl
 
 // Create GoDoc
 // @Summary      Create User
-// @Tags         products
+// @Tags         users
 // @Accept       json
 // @Produce      json
 // @Param        request body     dto.CreateUserDto true "User information"
 // @Success      201     {object} dto.UserResponse
 // @Failure      400     {object} response.ErrorResponse
-// @Failure      401     {object} response.ErrorResponse
-// @Failure      422     {object} response.ErrorResponse
 // @Security     BearerAuth
 // @Router       /users [post]
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +45,33 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		response.FromError(w, r, err)
+	}
+
+	response.JSON(w, http.StatusCreated, dto.FromUser(u))
+}
+
+// GetById 		GoDoc
+// @Summary		Get user by id
+// @Tags        users
+// @Produce     json
+// @Param		id		path	int true "User ID" minimum(1)
+// @Success     200     {object} dto.UserResponse
+// @Failure     400     {object} response.ErrorResponse
+// @Security    BearerAuth
+// @Router      /users/{id} [get]
+func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "invalid id")
+		return
+	}
+
+	u, err := h.svc.GetByID(r.Context(), id)
+
+	if err != nil {
+		response.FromError(w, r, err)
+		return
 	}
 
 	response.JSON(w, http.StatusOK, dto.FromUser(u))

@@ -29,7 +29,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "products"
+                    "users"
                 ],
                 "summary": "Create User",
                 "parameters": [
@@ -39,7 +39,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_dto.CreateUserDto"
+                            "$ref": "#/definitions/CreateUserDto"
                         }
                     }
                 ],
@@ -47,25 +47,53 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_dto.UserResponse"
+                            "$ref": "#/definitions/UserResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by id",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/UserResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -73,7 +101,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_yodzafar_url-shortener-service_internal_transport_http_dto.CreateUserDto": {
+        "CreateUserDto": {
             "type": "object",
             "required": [
                 "email",
@@ -89,8 +117,40 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_yodzafar_url-shortener-service_internal_transport_http_dto.UserResponse": {
+        "ErrorResponse": {
             "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/FieldError"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "FieldError": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserResponse": {
+            "type": "object",
+            "required": [
+                "email",
+                "id"
+            ],
             "properties": {
                 "createdAt": {
                     "type": "string"
@@ -102,42 +162,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorBody": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_pkg_validator.FieldError"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "$ref": "#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorBody"
-                }
-            }
-        },
-        "github_com_yodzafar_url-shortener-service_pkg_validator.FieldError": {
-            "type": "object",
-            "properties": {
-                "field": {
-                    "type": "string"
-                },
-                "message": {
                     "type": "string"
                 }
             }

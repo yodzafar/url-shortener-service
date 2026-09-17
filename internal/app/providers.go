@@ -8,8 +8,8 @@ import (
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yodzafar/url-shortener-service/internal/config"
-	pgrepo "github.com/yodzafar/url-shortener-service/internal/repository/postgres"
 	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/repo"
+	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/sqlc"
 	"github.com/yodzafar/url-shortener-service/internal/service"
 	httptransport "github.com/yodzafar/url-shortener-service/internal/transport/http"
 	"github.com/yodzafar/url-shortener-service/internal/transport/http/handler"
@@ -25,7 +25,8 @@ var infraSet = wire.NewSet(
 	providePool,
 	provideHasher,
 	validator.New,
-	wire.Bind(new(pgrepo.DB), new(*pgxpool.Pool)),
+	wire.Bind(new(sqlc.DBTX), new(*pgxpool.Pool)),
+	sqlc.New,
 	wire.Bind(new(service.PasswordHasher), new(*hash.Bcrypt)),
 )
 

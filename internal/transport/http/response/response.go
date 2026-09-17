@@ -8,15 +8,11 @@ import (
 	"github.com/yodzafar/url-shortener-service/pkg/validator"
 )
 
-type ErrorBody struct {
+type ErrorResponse struct {
 	Code    string                 `json:"code"`
 	Message string                 `json:"message"`
 	Fields  []validator.FieldError `json:"fields,omitempty"`
-}
-
-type ErrorResponse struct {
-	Error ErrorBody `json:"error"`
-}
+} //@name ErrorResponse
 
 func JSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-type", "application/json; charset=utf-8")
@@ -32,13 +28,12 @@ func JSON(w http.ResponseWriter, status int, v any) {
 }
 
 func Error(w http.ResponseWriter, status int, msg string) {
-	JSON(w, status, ErrorResponse{Error: ErrorBody{Code: codeFromStatus(status), Message: msg}})
+	JSON(w, status, ErrorResponse{Code: codeFromStatus(status), Message: msg})
 }
 
 func ValidationError(w http.ResponseWriter, fields []validator.FieldError) {
-	JSON(w, http.StatusUnprocessableEntity, ErrorResponse{Error: ErrorBody{
-		Code: "VALIDATION_ERROR", Message: "validation failed", Fields: fields,
-	}})
+	JSON(w, http.StatusUnprocessableEntity, ErrorResponse{
+		Code: "VALIDATION_ERROR", Message: "validation failed", Fields: fields})
 }
 
 func codeFromStatus(s int) string {

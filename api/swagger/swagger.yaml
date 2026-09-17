@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  github_com_yodzafar_url-shortener-service_internal_transport_http_dto.CreateUserDto:
+  CreateUserDto:
     properties:
       email:
         type: string
@@ -11,7 +11,25 @@ definitions:
     - email
     - password
     type: object
-  github_com_yodzafar_url-shortener-service_internal_transport_http_dto.UserResponse:
+  ErrorResponse:
+    properties:
+      code:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/FieldError'
+        type: array
+      message:
+        type: string
+    type: object
+  FieldError:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  UserResponse:
     properties:
       createdAt:
         type: string
@@ -21,29 +39,9 @@ definitions:
         type: integer
       updatedAt:
         type: string
-    type: object
-  github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorBody:
-    properties:
-      code:
-        type: string
-      fields:
-        items:
-          $ref: '#/definitions/github_com_yodzafar_url-shortener-service_pkg_validator.FieldError'
-        type: array
-      message:
-        type: string
-    type: object
-  github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse:
-    properties:
-      error:
-        $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorBody'
-    type: object
-  github_com_yodzafar_url-shortener-service_pkg_validator.FieldError:
-    properties:
-      field:
-        type: string
-      message:
-        type: string
+    required:
+    - email
+    - id
     type: object
 host: localhost:8080
 info:
@@ -62,31 +60,48 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_dto.CreateUserDto'
+          $ref: '#/definitions/CreateUserDto'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_dto.UserResponse'
+            $ref: '#/definitions/UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/github_com_yodzafar_url-shortener-service_internal_transport_http_response.ErrorResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create User
       tags:
-      - products
+      - users
+  /users/{id}:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        minimum: 1
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by id
+      tags:
+      - users
 schemes:
 - http
 - https

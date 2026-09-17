@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/yodzafar/url-shortener-service/internal/domain"
+	"github.com/yodzafar/url-shortener-service/internal/service/input"
 )
 
 type UserService struct {
@@ -21,12 +22,7 @@ func NewUserService(repo UserRepository, hasher PasswordHasher) *UserService {
 	}
 }
 
-type CreateUserInput struct {
-	Email    string
-	Password string
-}
-
-func (s *UserService) Create(ctx context.Context, input CreateUserInput) (*domain.User, error) {
+func (s *UserService) Create(ctx context.Context, input input.CreateUserInput) (*domain.User, error) {
 	hash, err := s.hasher.Hash(input.Password)
 
 	if err != nil {

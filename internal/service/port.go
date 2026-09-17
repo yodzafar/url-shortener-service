@@ -20,10 +20,5 @@ type PasswordHasher interface {
 type TokenManager interface {
 	GenerateAccess(userID int64, role domain.Role) (string, error)
 	GenerateRefresh() (string, error)
-	ParseAccess(token string) (*TokenClaims, error)
-}
-
-type TokenClaims struct {
-	UserID int64
-	Role   domain.Role
+	ParseAccess(token string) (*domain.TokenClaims, error)
 }

@@ -14,7 +14,7 @@ func decodeJson(r *http.Request, dst any) error {
 	return dec.Decode(dst)
 }
 
-func AtoiDefault(s string, def int) int {
+func atoiDefault(s string, def int) int {
 	if s == "" {
 		return def
 	}

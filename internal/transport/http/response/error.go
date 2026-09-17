@@ -24,7 +24,7 @@ var errMap = map[error]mapping{
 func FromError(w http.ResponseWriter, r *http.Request, err error) {
 	for target, m := range errMap {
 		if errors.Is(err, target) {
-			JSON(w, m.status, ErrorResponse{Error: ErrorBody{Code: m.code, Message: target.Error()}})
+			JSON(w, m.status, ErrorResponse{Code: m.code, Message: target.Error()})
 		}
 	}
 }

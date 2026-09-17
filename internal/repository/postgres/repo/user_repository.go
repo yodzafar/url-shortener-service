@@ -21,8 +21,6 @@ func NewUserRepository(q *sqlc.Queries) *UserRepository {
 	return &UserRepository{q: q}
 }
 
-const userColumns = `id, email, password_hash, role, created_at, updated_at`
-
 // Create implements [service.UserRepository].
 func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 

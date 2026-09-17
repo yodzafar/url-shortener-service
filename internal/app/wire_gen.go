@@ -11,6 +11,7 @@ import (
 
 	"github.com/yodzafar/url-shortener-service/internal/config"
 	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/repo"
+	"github.com/yodzafar/url-shortener-service/internal/repository/postgres/sqlc"
 	"github.com/yodzafar/url-shortener-service/internal/service"
 	"github.com/yodzafar/url-shortener-service/internal/transport/http"
 	"github.com/yodzafar/url-shortener-service/internal/transport/http/handler"
@@ -24,7 +25,8 @@ func InitApp(ctx context.Context, cfg *config.Config) (*App, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	userRepository := repo.NewUserRepository(pool)
+	queries := sqlc.New(pool)
+	userRepository := repo.NewUserRepository(queries)
 	bcrypt := provideHasher()
 	userService := service.NewUserService(userRepository, bcrypt)
 	validatorValidator, err := validator.New()

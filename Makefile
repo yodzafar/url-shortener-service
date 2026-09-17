@@ -70,7 +70,11 @@ wire: ## Wire DI codegen
 	wire ./internal/app
 
 swagger: ## Swagger docs
-	swag init -g main.go -d cmd/api,internal -o api/swagger --parseDependency --parseInternal
+	swag init -g main.go -d cmd/api,internal -o api/swagger \
+                --parseDependency --parseInternal \
+                --parseDependencyLevel 1 \
+                --instanceName '' \
+                --outputTypes go,json,yaml
 
 mocks: ## Mockery (.mockery.yaml)
 	mockery
